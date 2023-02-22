@@ -228,6 +228,11 @@ module Datadog
             def exception_is_error?(exception)
               matcher = datadog_configuration[:error_statuses]
               return false unless exception
+              # メモ 
+              # 「raise ActiveRecord::RecordNotFound」すると変数exceptionにはActiveRecord::RecordNotFoundが入ってくる
+              # また,ActiveRecord::RecordNotFoundに限らずExceptionクラスには一律statusメソッドはないので,L237でexception.respond_to?('status') が必ず真になる
+              # そのため何かしらraiseするとそれがそのままAPMのErrorTrackingに表示される仕様になっていそう
+              return false if exception.class.name == "ActiveRecord::RecordNotFound"
               return true unless matcher
               return true unless exception.respond_to?('status')
 
